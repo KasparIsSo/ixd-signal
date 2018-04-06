@@ -36,7 +36,7 @@
   "bundleDependencies": false,
   "dependencies": {
     "serialport": "^4.0.3",
-    "ws": "^1.1.1"
+    "ws": "1.1.5"
   },
   "deprecated": false,
   "description": "An serial server for p5.js works with p5.serialport",

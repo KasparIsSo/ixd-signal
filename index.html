@@ -13,4 +13,11 @@
 
 <body>
 </body>
+
+<script>
+  var ws = new WebSocket('ws://localhost:8080/echo');
+  ws.onmessage=function(event){
+   document.getElementById("result").value=event.data;
+  }
+</script>
 </html>
