@@ -5,19 +5,171 @@
   <!-- uncomment lines below to include extra p5 libraries -->
   <!--<script language="javascript" src="libraries/p5.dom.js"></script>-->
   <!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+  <link href="https://fonts.googleapis.com/css?family=Tajawal:400,700,900" rel="stylesheet">
   <script language="javascript" src="libraries/p5.serialport.js"></script>
   <script language="javascript" type="text/javascript" src="sketch.js"></script>
   <!-- this line removes any default padding and style. you might only need one of these values set. -->
-  <style> body {padding: 0; margin: 0;} </style>
+  <style>
+    body {
+      padding: 0; margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Tajawal', Helvetica, sans-serif;
+    }
+
+    .container {
+      display: block;
+      max-width: 100vw;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 40px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .buttonContainer {
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    input[type=button] {
+      -webkit-appearance: none;
+      background: hsla(0, 0%, 100%, 1);
+      transition-duration: .4s;
+      padding: 10px 10px 5px;
+      border: solid 1px grey;
+    }
+
+    input[type=button]:hover {
+      background: hsla(0, 0%, 20%, .2);
+      border: solid 1px grey;
+    }
+
+    .seqButton {
+      width: 40px;
+      height: 40px;
+    }
+
+    .toSubmit {
+
+    }
+
+    .toSubmitValue {
+
+    }
+
+    .toSubmitValue::before {
+      content: "{";
+    }
+
+    .toSubmitValue::after {
+      content: "}";
+    }
+
+    .submit {
+      text-align: center;
+      margin: 20px auto;
+      padding: 13px 20px 10px;
+      text-transform: uppercase;
+    }
+
+    .delay {
+      width: 300px;
+      margin: 40px auto;
+    }
+
+    .delaySlider {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      opacity: .5;
+      background-color: hsla(0, 0%, 20%, 1);
+      height: 10px;
+    }
+
+    .delaySlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background-color: hsla(0, 0%, 100%, 1);
+      border: solid 1px grey;
+    }
+
+    .delaySlider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background-color: hsla(0, 0%, 100%, 1);
+      border: solid 1px grey;
+    }
+
+  </style>
 </head>
 
 <body>
+  <div class = "container">
+    <h2 class = "title">Light Instrument</h2>
+    <div class = "buttonContainer">
+      <input class = "seqButton" type = "button" value = "1" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "2" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "3" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "4" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "5" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "6" onclick = "addToSeq(this)">
+      <input class = "seqButton" type = "button" value = "7" onclick = "addToSeq(this)">
+    </div>
+    <div class = "toSubmit">
+      <h4>Order</h4>
+      <h4 class = "toSubmitValue"></h4>
+    </div>
+    <div class = "delay">
+      <input class = "delaySlider" type = "range" min = "100" max = "1000" step = "10" value = "300" oninput = "delayUpdate(this)" onchange = "delayUpdate(this)">
+      <h4 class = "delayValue">300</h4>
+    </div>
+    <input class = "submit" type = "button" value = "submit" onclick = "subSubmit(0)">
+    <input class = "submit" type = "button" value = "clear" onclick = "subClear()">
+  </div>
 </body>
 
 <script>
-  var ws = new WebSocket('ws://localhost:8080/echo');
-  ws.onmessage=function(event){
-   document.getElementById("result").value=event.data;
+  var sequence = [];
+  var delay = 300;
+  function addToSeq(t) {
+    sequence.push(t.value);
+    document.querySelector('.toSubmitValue').innerHTML = sequence;
+  }
+
+  function subSubmit(idx) {
+    window.setTimeout(
+      function() {
+        var pin = sequence[idx] - 1;
+        if (idx == sequence.length){
+          serial.write("9");
+        } else {
+          serial.write(pin);
+        }
+        // console.log(pin);
+        if(idx < sequence.length) {
+          idx++;
+          subSubmit(idx);
+        }
+      }, delay);
+  }
+
+  function subClear() {
+    sequence = [];
+    document.querySelector('.toSubmitValue').innerHTML = "";
+  }
+
+  function delayUpdate(t) {
+    delay = t.value;
+    document.querySelector('.delayValue').innerHTML = delay;
   }
 </script>
 </html>

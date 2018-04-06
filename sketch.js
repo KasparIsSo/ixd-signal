@@ -16,8 +16,11 @@ var portName = '/dev/cu.usbmodem1411'; // fill in your serial port name here
 // this is the message that will be sent to the Arduino:
 var outMessage = 'H';
 
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  colorMode(HSB, 360, 100, 100);
 
   // make an instance of the SerialPort object
   serial = new p5.SerialPort();
@@ -53,21 +56,21 @@ function gotData() {
   console.log(currentString);
 }
 
-function draw() {
-  background(255,255,255);
-  fill(0,0,0);
-  text("click to change the LED", 10, 10);
-}
-// When you click on the screen, the server sends H or L out the serial port
-function mouseReleased() {
-  serial.write(outMessage);
-  if (outMessage === 'H') {
-    outMessage = 'L';
-  } else {
-    outMessage = 'H';
-  }
-}
+// function draw() {
+  // background(255,255,255);
+  // fill(0,0,0);
 
+
+// }
+// When you click on the screen, the server sends H or L out the serial port
+// function mouseReleased() {
+//   serial.write(outMessage);
+//   if (outMessage === 'H') {
+//     outMessage = 'L';
+//   } else {
+//     outMessage = 'H';
+//   }
+// }
 // function touchEnded() {
 //   serial.write(outMessage);
 //   if (outMessage === 'H') {
