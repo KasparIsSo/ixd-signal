@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/images/favicon.ico"/>
+  <title>Stage Player</title>
+  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:200,400,700" rel="stylesheet">
+	<!-- <link rel="stylesheet" href="css/clear.css" type="text/css"> -->
+	<link rel="stylesheet" href="css/player.css" type="text/css">
+  <script type="text/javascript" src="../lib/p5.min.js"></script>
+  <script type="text/javascript" src="../lib/p5.sound.min.js"></script>
+  <script language="javascript" src="../lib/p5.serialport.js"></script>
+  <!-- <script language="javascript" type="text/javascript" src="../sketch.js"></script> -->
+  <link rel="stylesheet" href="../node_modules/material-design-icons/iconfont/material-icons.css">
+</head>
+
+<body>
+  <div class = "container col_12 center">
+    <div class = "playlist col_3 col_3--c">
+      <div class = "playlist__title">
+        <h2>Playlist</h2>
+      </div>
+      <div class = "playlist__songs">
+        <div class = "song active" onclick = "selectSong(0)">
+          <h4 class = "song__name">Nice for What</h4>
+          <h6 class = "song__artist">Drake</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(1)">
+          <h4 class = "song__name">Scared to be Lonely</h4>
+          <h6 class = "song__artist">Martin Garrix &amp; Dua Lipa</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(2)">
+          <h4 class = "song__name">Back to You ft. Bebe Rexha</h4>
+          <h6 class = "song__artist">Louis Tomlinson</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(3)">
+          <h4 class = "song__name">1 Night ft. Charlie XCX</h4>
+          <h6 class = "song__artist">Mura Masa</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(4)">
+          <h4 class = "song__name">Wolves</h4>
+          <h6 class = "song__artist">Marshmello &amp; Selena Gomez</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(5)">
+          <h4 class = "song__name">Levels</h4>
+          <h6 class = "song__artist">Avicii</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(6)">
+          <h4 class = "song__name">ELEMENT.</h4>
+          <h6 class = "song__artist">Kendrick Lamar</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(7)">
+          <h4 class = "song__name">Otis</h4>
+          <h6 class = "song__artist">Jay-Z & Kanye West</h6>
+        </div>
+        <div class = "song" onclick = "selectSong(8)">
+          <h4 class = "song__name">Down the Road</h4>
+          <h6 class = "song__artist">C2C</h6>
+        </div>
+      </div>
+    </div>
+    <div class = "player col_9">
+      <div class = "player__title">
+        <h2>Visualizer</h2>
+      </div>
+      <div id = "playerVis" class = "player__vis">
+      </div>
+      <div class = "controls">
+        <button onclick = "prevSong()" class = "col_1 col_1--c controls__button">
+          <i class="material-icons">skip_previous</i>
+        </button>
+        <button id = "playButton" type = "button" onclick = "playPause(this)" class = "col_1 controls__button">
+          <i class="material-icons">pause</i>
+        </button>
+        <button onclick = "nextSong()" class = "col_1 col_1--c controls__button">
+          <i class="material-icons">skip_next</i>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  var fft;
+  var visContainer = document.getElementById('playerVis');
+  var playlistSongs = document.getElementsByClassName('song');
+  var sequenceSent = [];
+  // var timing = 1;
+  // var durate = timing;
+
+  var activePin = 0;
+
+  var songs = [
+    "Drake-NiceForWhat.mp3",
+    "DuaLipa-ScaredToBeLonely.mp3",
+    "LouisTomlinson-BackToYou.mp3",
+    "MuraMasa-1Night.mp3",
+    "SelenaGomez-Wolves.mp3",
+    "Avicii-Levels.mp3",
+    "KendrickLamar-ELEMENT.mp3",
+    "Jay-Z-Otis.mp3",
+    "C2C-DownTheRoad.mp3"
+  ];
+  var loadedSongs = [];
+  var selectedSong;
+
+  var serial;
+
+  var portName = '/dev/cu.usbmodem1411'; // fill in your serial port name here
+
+  function preload() {
+    for (var i = 0; i < songs.length; i++) {
+      loadedSongs[i] = loadSound('/assets/audio/' + songs[i]);
+    }
+  }
+
+  function setup() {
+    // make an instance of the SerialPort object
+    serial = new p5.SerialPort();
+
+    // Get a list the ports available
+    // You should have a callback defined to see the results. See gotList, below:
+    serial.list();
+
+    // Assuming our Arduino is connected,  open the connection to it
+    serial.open(portName);
+
+    // When you get a list of serial ports that are available
+    serial.on('list', gotList);
+
+    // When you some data from the serial port
+    // serial.on('data', gotData);
+
+    var canvas = createCanvas(visContainer.offsetWidth-2, visContainer.offsetHeight-2);
+    canvas.parent('playerVis');
+    background(0);
+    colorMode(HSB, 360, 100, 100, 1);
+    selectedSong = 0;
+    // console.log(songs[selectedSong]);
+    loadedSongs[selectedSong].play();
+
+    fft = new p5.FFT(.9, 64);
+    fft.setInput(loadedSongs[selectedSong]);
+  }
+
+  function draw() {
+    background(0, 0, 100);
+
+    var spectrum = fft.analyze();
+    // console.log(spectrum);
+
+    // beginShape();
+    var colW = width/spectrum.length;
+    noStroke();
+
+    sequenceSent = [0, 0, 0, 0];
+
+    var quarter = spectrum.length/4;
+
+    for (i = 0; i < spectrum.length; i++) {
+      if (i < quarter) {
+        fill(0, 50, 100);
+        sequenceSent[0] += map(shiftLog(i, spectrum[i]), 0, 510, 0, 10);
+      } else if (i < 2*quarter) {
+        fill(40, 50, 100);
+        sequenceSent[1] += map(shiftLog(i, spectrum[i]), 0, 510, 0, 10);
+      } else if (i < 3*quarter) {
+        fill(80, 50, 100);
+        sequenceSent[2] += map(shiftLog(i, spectrum[i]), 0, 510, 0, 10);
+      } else {
+        fill(120, 50, 100);
+        sequenceSent[3] += map(shiftLog(i, spectrum[i]), 0, 510, 0, 10);
+      }
+
+      rect(
+        i * colW,
+        height,
+        colW,
+        map(shiftLog(i, spectrum[i]), 0, 510, 0, -height)
+      );
+
+      // rect(
+      //   i * colW,
+      //   0,
+      //   colW,
+      //   map(shiftLog(i, spectrum[i]), 0, 510, 0, height)
+      // );
+    }
+
+    // sequenceSent = sequenceSent.map(function(s) {
+    //   return floor(s/quarter);
+    // });
+    //
+    // var concat = "";
+    // for(var i = 0; i < sequenceSent.length; i++) {
+    //   var t = String(sequenceSent[i]);
+    //   var filler = 3 - t.length;
+    //   for(var j = 0; j < filler; j++) {
+    //     concat = concat + "0";
+    //   }
+    //   concat = concat + t;
+    // }
+
+    // durate--;
+    // if(durate == 0) {
+
+      sequenceSent = sequenceSent.map(function(s) {
+        return floor(s/quarter);
+      });
+
+      strokeWeight(2);
+      for (var i = 0; i < sequenceSent.length; i++) {
+        if (i == 0) {
+          stroke(0, 50, 80);
+        } else if (i == 1) {
+          stroke(40, 50, 80);
+        } else if (i == 2) {
+          stroke(80, 50, 80);
+        } else {
+          stroke(120, 50, 80);
+        }
+        line(
+          i * width/4,
+          map(sequenceSent[i], 0, 10, height, 0),
+          (i+1) * width/4,
+          map(sequenceSent[i], 0, 10, height, 0)
+        )
+      }
+
+      // var concat = "";
+      // for(var i = 0; i < sequenceSent.length; i++) {
+      //   var t = String(sequenceSent[i]);
+      //   // var filler = 3 - t.length;
+      //   // for(var j = 0; j < filler; j++) {
+      //   //   concat = concat + "0";
+      //   // }
+      //   concat = concat + t;
+      // }
+      // console.log(concat);
+      console.log(sequenceSent);
+
+
+      serial.write(sequenceSent[activePin]);
+      // durate = timing;
+
+      activePin = (activePin + 1)%4;
+    // }
+    // console.log(concat);
+    // serial.write(concat);
+    // serial.write(200);
+
+    if (loadedSongs[selectedSong].currentTime() >= loadedSongs[selectedSong].duration()) {
+      nextSong();
+    }
+  }
+
+  // Got the list of ports
+  function gotList(thelist) {
+    console.log("List of Serial Ports:");
+    // theList is an array of their names
+    for (var i = 0; i < thelist.length; i++) {
+      // Display in the console
+      console.log(i + " " + thelist[i]);
+    }
+  }
+
+  // Called when there is data available from the serial port
+  // function gotData() {
+  //   var currentString = serial.readLine();
+  //   // console.log(currentString);
+  // }
+
+
+  function shiftLog(idx, v) {
+    return Math.log((idx+8)*.18) * v * 1.3;
+  }
+
+  function nextSong() {
+    if(loadedSongs[selectedSong].isPlaying()) {
+      loadedSongs[selectedSong].stop();
+    };
+    selectedSong = (selectedSong + 1)%songs.length;
+    loadedSongs[selectedSong].play();
+    fft.setInput(loadedSongs[selectedSong]);
+    for(var i = 0; i < playlistSongs.length; i++) {
+      playlistSongs[i].classList.remove('active');
+      if (i == selectedSong) {
+        playlistSongs[i].classList.add('active');
+      }
+    }
+  }
+
+  function prevSong() {
+    if(loadedSongs[selectedSong].isPlaying()) {
+      loadedSongs[selectedSong].stop();
+    };
+    selectedSong = (selectedSong - 1 + songs.length)%songs.length;
+    loadedSongs[selectedSong].play();
+    fft.setInput(loadedSongs[selectedSong]);
+    for(var i = 0; i < playlistSongs.length; i++) {
+      playlistSongs[i].classList.remove('active');
+      if (i == selectedSong) {
+        playlistSongs[i].classList.add('active');
+      }
+    }
+  }
+
+  function playPause(elem) {
+    var activeSong = loadedSongs[selectedSong];
+    if(activeSong.isPlaying()) {
+      activeSong.pause();
+      elem.querySelector('i').innerHTML = 'play_arrow';
+    } else {
+      activeSong.play();
+      elem.querySelector('i').innerHTML = 'pause';
+    }
+  }
+
+  function selectSong(e) {
+    document.getElementById('playButton').querySelector('i').innerHTML = 'pause';
+    if(loadedSongs[selectedSong].isPlaying()) {
+      loadedSongs[selectedSong].stop();
+    };
+    selectedSong = e;
+    loadedSongs[selectedSong].play();
+    fft.setInput(loadedSongs[selectedSong]);
+    for(var i = 0; i < playlistSongs.length; i++) {
+      playlistSongs[i].classList.remove('active');
+      if (i == selectedSong) {
+        playlistSongs[i].classList.add('active');
+      }
+    }
+  }
+</script>
+</html>

@@ -1,0 +1,48 @@
+$break-desktop-xl: 1680px;
+$break-desktop-l: 1320px;
+$break-desktop-s: 1180px;
+$break-tablet-l: 980px;
+$break-tablet-s: 800px;
+$break-tablet-xs: 600px;
+$break-mobile-l: 420px;
+$break-mobile-s: 320px;
+
+$lightGrey: hsla(0, 0, 99, 1);
+$grey: hsla(0, 0, 30, 1);
+$grey20op: hsla(0, 0, 30, .2);
+$darkGrey: hsla(0, 0, 10, .2);
+$red: hsla(0, 90, 65, 1);
+
+$dtd: .4s;
+
+@mixin e($element) {
+    &__#{$element} {
+        @content;
+    }
+}
+
+@mixin m($modifier) {
+    &--#{$modifier} {
+        @content;
+    }
+}
+
+$p-font: "IBM Plex Sans", Helvetica, sans-serif;
+
+* {
+  box-sizing: border-box;
+  font-family: $p-font;
+  color: $grey;
+}
+
+.center {
+  margin: 0 auto;
+}
+
+@mixin transition($duration) {
+  transition-duration: $duration;
+}
+
+@mixin dropShadow() {
+  box-shadow: 0px 3px 10px $darkGrey;
+}

@@ -10,6 +10,7 @@ by Tom Igoe
 
 // Declare a "SerialPort" object
 var serial;
+console.log('hi');
 
 var portName = '/dev/cu.usbmodem1411'; // fill in your serial port name here
 

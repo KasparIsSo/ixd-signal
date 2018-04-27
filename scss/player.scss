@@ -1,0 +1,140 @@
+@import 'mixins.scss';
+@import 'modules/grid.scss';
+
+.player {
+  display: inline-block;
+  margin-right: 0;
+  vertical-align: top;
+  // border: {
+  //   style: solid;
+  //   color: $grey;
+  //   width: 1px;
+  // }
+
+  @include e('title') {
+    padding: 20px;
+    border: {
+      style: solid;
+      color: $grey;
+      width: 1px;
+    }
+    border: {
+      bottom: {
+        style: none;
+        width: 0;
+      }
+    }
+    &>h2 {
+      margin: 0;
+    }
+  }
+
+  @include e('vis') {
+    height: 300px;
+    border: {
+      style: solid;
+      color: $grey;
+      width: 1px;
+    }
+  }
+}
+
+.playlist {
+  display: inline-block;
+  border: {
+    style: solid;
+    color: $grey;
+    width: 1px;
+  }
+  overflow: hidden;
+  // height: 400px;
+
+  @include e('songs') {
+    overflow: scroll;
+    height: 400px;
+  }
+
+  @include e('title') {
+    padding: 20px;
+    border: {
+      bottom: {
+        style: solid;
+        color: $grey;
+        width: 1px;
+      }
+    }
+    &>h2 {
+      margin: 0;
+    }
+  }
+}
+
+.song {
+  display: block;
+  padding: 20px;
+  @include transition($dtd);
+
+  &:not(:last-child) {
+    border: {
+      bottom: {
+        style: solid;
+        color: $grey20op;
+        width: 1px;
+      }
+    }
+  }
+
+  &.active {
+    border: {
+      right: {
+        style: solid;
+        color: $red;
+        width: 7px;
+      }
+    }
+  }
+
+  @include e('name') {
+    font: {
+      weight: 700;
+    }
+    margin: {
+      top: 0;
+      bottom: 0px;
+    }
+  }
+
+  @include e('artist') {
+    font: {
+      weight: 200;
+    }
+    margin: {
+      top: 0;
+      bottom: 0;
+    }
+  }
+
+  &:hover {
+    background: $lightGrey;
+    @include dropShadow;
+  }
+}
+
+.controls {
+  margin-top: 20px;
+  display: inline-block;
+  @include e('button') {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: {
+      top: 20px;
+      bottom: 20px;
+    }
+
+    border: {
+      style: solid;
+      color: $grey;
+      width: 1px;
+    }
+  }
+}

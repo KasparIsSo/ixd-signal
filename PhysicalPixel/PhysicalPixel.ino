@@ -25,9 +25,15 @@
 
 //const int ledPin = 13; // the pin that the LED is attached to
 
-int ledPins[] = {2, 3, 4, 5, 6, 7, 8};
+int ledPins[] = {3, 5, 6, 9};
 
 int incomingByte;      // a variable to read incoming serial data into
+
+//int go[] = {0, 100, 50, 255};
+
+String numbers;
+//int go[4];
+int activePin = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -38,17 +44,49 @@ void setup() {
 }
 
 void loop() {
+//  go = int(split(numbers, ' '));
+//  for(int i = 0; i < sizeof(go)/sizeof(go[0]); i++) {
+//      go[i] = numbers.substring(i*3, (i+1)*3).toInt();
+////      Serial.println(go[i]);
+//  }
   if (Serial.available() > 0) {
+    
     incomingByte = Serial.read();
+    Serial.println(incomingByte);
+    analogWrite(ledPins[activePin], map(incomingByte, 0, 10, 0, 255));
+    activePin = (activePin+1)%4;
 
-    for(int i = 0; i < sizeof(ledPins)/sizeof(ledPins[0]); i++) {
-      if( i == incomingByte ) {
-        digitalWrite(ledPins[i], HIGH);
-      } else {
-        digitalWrite(ledPins[i], LOW);
-      }
-    }
+
+    
+//    numbers = String(incomingByte);
+
+//    for(int i = 0; i < sizeof(ledPins)/sizeof(ledPins[0]); i++) {
+////      go[i] = numbers.substring(i*3, (i+1)*3).toInt();
+////      Serial.print(i);
+////      Serial.println(go[i]);
+////      analogWrite(ledPins[i], go[i]);
+//
+//      analogWrite(ledPins[i], numbers.substring(i*3, (i+1)*3).toInt());
+//    }
+
   }
 }
+
+//      go = Serial.read();
+//
+//    Serial.println("hi");
+//    Serial.println(incomingByte);
+
+//    for(int i = 0; i < sizeof(ledPins)/sizeof(ledPins[0]); i++) {
+//      if( i == incomingByte ) {
+//        analogWrite(ledPins[i], 255);
+//      } else {
+//        analogWrite(ledPins[i], LOW);
+//      }
+//    }
+
+//    for(int i = 0; i < sizeof(go)/sizeof(go[0]); i++) {
+//        analogWrite(ledPins[i], go[i]);
+//    }
 
 
